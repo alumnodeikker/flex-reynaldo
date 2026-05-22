@@ -9,6 +9,7 @@ create table public.perfiles (
   creado_en  timestamptz not null default now()
 );
 
+
 create or replace function public.handle_new_user()
   returns trigger
   language plpgsql
@@ -107,3 +108,5 @@ insert into public.salas_vip (nombre, descripcion, capacidad, precio_hora) value
   ) where (estado not in ('cancelada'))
 );
 
+ALTER TABLE public.perfiles     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.salas_vip     ENABLE ROW LEVEL SECURITY;

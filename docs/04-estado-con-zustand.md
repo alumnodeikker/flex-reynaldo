@@ -1,4 +1,4 @@
-# 03 — Estado Global con Zustand
+# 04 — Estado Global con Zustand
 
 > **Proyecto Flex** · Stack: Next.js · Supabase · Zustand · Stripe  
 > Nivel: Principiante-Intermedio
@@ -25,24 +25,14 @@ Zustand resuelve todo esto con muy poco código y sin contextos anidados.
 
 ## Instalación
 
-- Instalación global de pnpm, alternativa moderna y (en teoría) más segura que npm.
-
 ```bash
-npm install -g pnpm@latest-11
-```
-
-- Podemos instalar nextjs dentro de esta carpeta, utilizando el "." al final de la instalación.
-  
-```bash
-pnpm create next-app .
+cd apps/web
 pnpm add zustand
 ```
 
 ---
 
 ## Estructura de stores
-
-Creamos dos stores separados. Cada store es responsable de **una sola cosa** (principio de responsabilidad única):
 
 ```
 store/
@@ -59,108 +49,58 @@ store/
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-/**
- * Store del carrito de consumiciones.
- *
- * Usamos el middleware 'persist' para guardar el carrito en localStorage.
- * Si el usuario recarga la página o cierra el navegador accidentalmente,
- * no pierde lo que había añadido.
- *
- * Estructura de cada item:
- * {
- *   id: number,         ← id del producto en la DB
- *   nombre: string,
- *   precio: number,
- *   imagen_url: string,
- *   cantidad: number
- * }
- */
 export const useCarritoStore = create(
   persist(
     (set, get) => ({
-      // ─── Estado ───────────────────────────────────────────────────
-      items: [],       // array de productos en el carrito
-      mesaId: null,    // mesa donde está sentado el cliente
+      items: [],
+      mesaId: null,
 
-      // ─── Acciones ─────────────────────────────────────────────────
-
-      /**
-       * Establece la mesa del cliente (se llama al escanear el QR de la mesa).
-       */
       setMesa(mesaId) {
         set({ mesaId })
       },
 
-      /**
-       * Añade un producto. Si ya existe, incrementa la cantidad.
-       */
       agregarItem(producto) {
         set((estado) => {
           const existente = estado.items.find((i) => i.id === producto.id)
-
           if (existente) {
-            // Mapea el array: solo cambia el item que coincide
             return {
               items: estado.items.map((i) =>
                 i.id === producto.id ? { ...i, cantidad: i.cantidad + 1 } : i
               ),
             }
           }
-
-          // Producto nuevo: lo añadimos con cantidad 1
           return { items: [...estado.items, { ...producto, cantidad: 1 }] }
         })
       },
 
-      /**
-       * Reduce la cantidad. Si llega a 0, elimina el item del carrito.
-       */
       quitarItem(productoId) {
         set((estado) => ({
           items: estado.items
-            .map((i) =>
-              i.id === productoId ? { ...i, cantidad: i.cantidad - 1 } : i
-            )
-            .filter((i) => i.cantidad > 0),  // eliminar si cantidad = 0
+            .map((i) => i.id === productoId ? { ...i, cantidad: i.cantidad - 1 } : i)
+            .filter((i) => i.cantidad > 0),
         }))
       },
 
-      /**
-       * Elimina un producto del carrito independientemente de la cantidad.
-       */
       eliminarItem(productoId) {
         set((estado) => ({
           items: estado.items.filter((i) => i.id !== productoId),
         }))
       },
 
-      /**
-       * Vacía el carrito. Se llama tras confirmar el pedido.
-       */
       vaciarCarrito() {
         set({ items: [], mesaId: null })
       },
 
-      // ─── Derivados (calculados) ────────────────────────────────────
-
-      /**
-       * Número total de unidades en el carrito (suma de cantidades).
-       * Útil para el badge del icono del carrito.
-       */
       get totalUnidades() {
         return get().items.reduce((acc, i) => acc + i.cantidad, 0)
       },
 
-      /**
-       * Precio total del carrito.
-       */
       get totalPrecio() {
         return get().items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
       },
     }),
     {
-      name: 'flex-carrito',  // clave en localStorage
-      // Solo persistimos 'items' y 'mesaId', no las funciones
+      name: 'flex-carrito',
       partialize: (estado) => ({ items: estado.items, mesaId: estado.mesaId }),
     }
   )
@@ -175,19 +115,11 @@ export const useCarritoStore = create(
 // store/reservaStore.js
 import { create } from 'zustand'
 
-/**
- * Store para la selección de sala VIP.
- * NO persistimos esto en localStorage porque es un flujo de pago activo;
- * si el usuario recarga, debe empezar desde el principio (evita estados corruptos).
- */
 export const useReservaStore = create((set, get) => ({
-  // ─── Estado ─────────────────────────────────────────────────────
-  salaSeleccionada: null,  // objeto sala completo (id, nombre, precio_hora…)
-  fechaInicio: null,       // Date | null
-  fechaFin: null,          // Date | null
-  paso: 1,                 // 1: elegir sala | 2: elegir horario | 3: confirmar pago
-
-  // ─── Acciones ───────────────────────────────────────────────────
+  salaSeleccionada: null,
+  fechaInicio: null,
+  fechaFin: null,
+  paso: 1,
 
   seleccionarSala(sala) {
     set({ salaSeleccionada: sala, paso: 2 })
@@ -197,37 +129,18 @@ export const useReservaStore = create((set, get) => ({
     set({ fechaInicio: inicio, fechaFin: fin, paso: 3 })
   },
 
-  /**
-   * Vuelve al paso anterior.
-   */
   retroceder() {
     set((estado) => ({ paso: Math.max(1, estado.paso - 1) }))
   },
 
-  /**
-   * Limpia la selección. Se llama si el usuario cancela el flujo
-   * o cuando el pago se completa.
-   */
   resetReserva() {
-    set({
-      salaSeleccionada: null,
-      fechaInicio: null,
-      fechaFin: null,
-      paso: 1,
-    })
+    set({ salaSeleccionada: null, fechaInicio: null, fechaFin: null, paso: 1 })
   },
 
-  // ─── Derivados ──────────────────────────────────────────────────
-
-  /**
-   * Calcula el precio total basándose en precio_hora y las horas seleccionadas.
-   * Devuelve 0 si no hay sala o fechas seleccionadas.
-   */
   get totalReserva() {
     const { salaSeleccionada, fechaInicio, fechaFin } = get()
     if (!salaSeleccionada || !fechaInicio || !fechaFin) return 0
-
-    const horas = (fechaFin - fechaInicio) / (1000 * 60 * 60)  // ms → horas
+    const horas = (fechaFin - fechaInicio) / (1000 * 60 * 60)
     return Math.max(0, horas * salaSeleccionada.precio_hora)
   },
 }))
@@ -246,8 +159,6 @@ export const useReservaStore = create((set, get) => ({
 import { useCarritoStore } from '@/store/carritoStore'
 
 export default function TarjetaProducto({ producto }) {
-  // Solo nos suscribimos a la acción, no al array completo.
-  // Así el componente NO re-renderiza cuando cambia el carrito de otro producto.
   const agregarItem = useCarritoStore((estado) => estado.agregarItem)
 
   return (
@@ -255,9 +166,7 @@ export default function TarjetaProducto({ producto }) {
       <img src={producto.imagen_url} alt={producto.nombre} />
       <h3>{producto.nombre}</h3>
       <p>{producto.precio} €</p>
-      <button onClick={() => agregarItem(producto)}>
-        + Añadir
-      </button>
+      <button onClick={() => agregarItem(producto)}>+ Añadir</button>
     </div>
   )
 }
@@ -272,7 +181,6 @@ export default function TarjetaProducto({ producto }) {
 import { useCarritoStore } from '@/store/carritoStore'
 
 export default function IconoCarrito() {
-  // Suscripción selectiva: solo re-renderiza cuando cambia totalUnidades
   const totalUnidades = useCarritoStore((estado) =>
     estado.items.reduce((acc, i) => acc + i.cantidad, 0)
   )
@@ -298,9 +206,7 @@ import { useCarritoStore } from '@/store/carritoStore'
 import { confirmarPedido } from '@/app/actions/pedidos'
 
 export default function PanelCarrito() {
-  const { items, mesaId, quitarItem, eliminarItem, vaciarCarrito } =
-    useCarritoStore()
-
+  const { items, mesaId, quitarItem, eliminarItem, vaciarCarrito } = useCarritoStore()
   const total = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
 
   async function handleConfirmar() {
@@ -308,7 +214,6 @@ export default function PanelCarrito() {
       alert('No hay mesa seleccionada. Escanea el QR de tu mesa.')
       return
     }
-    // Server Action: crea el pedido y los pedido_items en Supabase
     await confirmarPedido({ items, mesaId })
     vaciarCarrito()
   }
@@ -327,7 +232,6 @@ export default function PanelCarrito() {
           <button onClick={() => eliminarItem(item.id)}>🗑</button>
         </div>
       ))}
-
       <p className="total">Total: {total.toFixed(2)} €</p>
       <button onClick={handleConfirmar}>Confirmar pedido</button>
     </div>
@@ -347,7 +251,6 @@ export default function SelectorSalaVip({ salas }) {
   const { paso, salaSeleccionada, seleccionarSala, seleccionarHorario, retroceder } =
     useReservaStore()
 
-  // Paso 1: lista de salas disponibles
   if (paso === 1) {
     return (
       <div>
@@ -363,7 +266,6 @@ export default function SelectorSalaVip({ salas }) {
     )
   }
 
-  // Paso 2: seleccionar horario
   if (paso === 2) {
     function handleHorario(e) {
       e.preventDefault()
@@ -389,7 +291,6 @@ export default function SelectorSalaVip({ salas }) {
     )
   }
 
-  // Paso 3: resumen antes del pago (el pago lo gestiona Stripe en el apunte 04)
   if (paso === 3) {
     const horas = (useReservaStore.getState().fechaFin - useReservaStore.getState().fechaInicio) / 3600000
     const total = (horas * salaSeleccionada.precio_hora).toFixed(2)
@@ -400,7 +301,7 @@ export default function SelectorSalaVip({ salas }) {
         <h2>Confirmar reserva</h2>
         <p>Sala: {salaSeleccionada.nombre}</p>
         <p>Horas: {horas}h · Total: {total} €</p>
-        {/* El botón de pago irá aquí — ver apunte 04 */}
+        {/* El botón de pago irá aquí — ver apunte 05 */}
       </div>
     )
   }
@@ -411,13 +312,12 @@ export default function SelectorSalaVip({ salas }) {
 
 ## 4. Sincronización de UI sin recargar
 
-Zustand actualiza la UI de forma automática cuando cambia el estado. No hace falta `useEffect` ni llamadas manuales. El flujo es:
+Zustand actualiza la UI de forma automática cuando cambia el estado:
 
 ```
 Usuario pulsa "Añadir" → agregarItem() → Zustand actualiza items
                        ↓
 Todos los componentes suscritos a 'items' se re-renderizan automáticamente
-(PanelCarrito, IconoCarrito, etc.)
 ```
 
 **Suscripción selectiva** (importante para rendimiento):
@@ -439,26 +339,18 @@ const totalUnidades = useCarritoStore((estado) =>
 
 ## 5. Acceder al store fuera de React (Server Actions)
 
-Zustand funciona fuera de componentes React si lo necesitas:
-
 ```js
 // app/actions/pedidos.js
 'use server'
 
 import { supabase } from '@/lib/supabase'
 
-/**
- * Server Action: crea el pedido y sus ítems en Supabase.
- * Recibe los datos del carrito serializados (no puede recibir el store directamente).
- */
 export async function confirmarPedido({ items, mesaId }) {
-  // Obtener el usuario autenticado en el servidor
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')
 
   const total = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0)
 
-  // Crear el pedido
   const { data: pedido, error: errorPedido } = await supabase
     .from('pedidos')
     .insert({ mesa_id: mesaId, cliente_id: user.id, total })
@@ -467,12 +359,11 @@ export async function confirmarPedido({ items, mesaId }) {
 
   if (errorPedido) throw new Error(errorPedido.message)
 
-  // Crear las líneas del pedido
   const lineas = items.map((item) => ({
     pedido_id:   pedido.id,
     producto_id: item.id,
     cantidad:    item.cantidad,
-    precio_unit: item.precio,  // snapshot del precio
+    precio_unit: item.precio,
   }))
 
   const { error: errorItems } = await supabase
@@ -506,6 +397,4 @@ export async function confirmarPedido({ items, mesaId }) {
 
 ## Navegación
 
-| | |
-|---|---|
-| [← 02 — Seguridad con RLS](./02-seguridad-rls.md) | [04 — Stripe y Edge Functions →](./04-stripe-y-edge-functions.md) |
+[← 03 — Interfaz estática](./03-ui-estatica.md) · [05 — Stripe y Edge Functions →](./05-stripe-y-edge-functions.md)

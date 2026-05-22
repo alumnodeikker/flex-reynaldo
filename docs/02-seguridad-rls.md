@@ -329,6 +329,4 @@ O usa la pestaña **Authentication → Policies** del Dashboard para ver las pol
 
 ## Navegación
 
-| | |
-|---|---|
-| [← 01 — Base de Datos y Storage](./01-db-y-storage-flex.md) | [03 — Estado con Zustand →](./03-estado-con-zustand.md) |
+[← 01 — Base de Datos y Storage](./01-db-y-storage-flex.md) · [03 — Interfaz estática →](./03-ui-estatica.md)

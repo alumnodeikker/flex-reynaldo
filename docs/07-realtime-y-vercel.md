@@ -469,6 +469,4 @@ Sin esto, el login con OAuth o magic links redirige a la URL incorrecta.
 
 ## Navegación
 
-| | |
-|---|---|
-| [← 05 — PWA y Entradas QR](./05-pwa-y-entradas-qr.md) | |
+[← 06 — PWA y Entradas QR](./06-pwa-y-entradas-qr.md)

@@ -447,6 +447,4 @@ En móvil (Chrome), aparecerá el banner "Añadir a pantalla de inicio" automát
 
 ## Navegación
 
-| | |
-|---|---|
-| [← 04 — Stripe y Edge Functions](./04-stripe-y-edge-functions.md) | [06 — Realtime y Vercel →](./06-realtime-y-vercel.md) |
+[← 05 — Stripe y Edge Functions](./05-stripe-y-edge-functions.md) · [07 — Realtime y Vercel →](./07-realtime-y-vercel.md)
