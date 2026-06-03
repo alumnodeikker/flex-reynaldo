@@ -1,22 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import FlexLogo from '@/components/FlexLogo'
-import { createClient } from '@/lib/supabase/client'
+import { register } from '@/lib/actions/auth'
 
 export default function PaginaRegister() {
-  const router = useRouter()
   const [form, setForm] = useState({ nombre: '', email: '', password: '', confirmar: '' })
   const [error, setError] = useState('')
   const [cargando, setCargando] = useState(false)
   const set = k => e => setForm(prev => ({ ...prev, [k]: e.target.value }))
 
-
   async function handleSubmit(e) {
     e.preventDefault()
-    const supabase = createClient()
     setError('')
 
     if (form.password !== form.confirmar) {
@@ -29,18 +25,10 @@ export default function PaginaRegister() {
     }
 
     setCargando(true)
-
-    const { error: authError } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: { data: { nombre: form.nombre } },
-    })
-
+    const formData = new FormData(e.target)
+    const result = await register(formData)
     setCargando(false)
-
-    if (authError) { setError(authError.message); return }
-
-    router.push('/')
+    if (result?.error) setError(result.error)
   }
 
   return (
@@ -55,7 +43,7 @@ export default function PaginaRegister() {
         <div className="absolute inset-0 bg-linear-to-r from-zinc-950/60 to-zinc-950/10" />
         <div className="absolute bottom-12 left-10 right-10">
           <p className="text-white/80 text-xl font-light italic leading-relaxed">
-            "Únete a la experiencia<br />más exclusiva de la ciudad."
+            Únete a la experiencia<br />más exclusiva de la ciudad.
           </p>
         </div>
       </div>
@@ -89,6 +77,7 @@ export default function PaginaRegister() {
               <label className="text-zinc-500 text-xs block mb-1.5">Nombre completo</label>
               <input
                 type="text"
+                name="nombre"
                 placeholder="Alex García"
                 value={form.nombre}
                 onChange={set('nombre')}
@@ -100,6 +89,7 @@ export default function PaginaRegister() {
               <label className="text-zinc-500 text-xs block mb-1.5">Email</label>
               <input
                 type="email"
+                name="email"
                 placeholder="tu@email.com"
                 value={form.email}
                 onChange={set('email')}
@@ -111,6 +101,7 @@ export default function PaginaRegister() {
               <label className="text-zinc-500 text-xs block mb-1.5">Contraseña</label>
               <input
                 type="password"
+                name="password"
                 placeholder="Mínimo 8 caracteres"
                 value={form.password}
                 onChange={set('password')}

@@ -1,13 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import FlexLogo from '@/components/FlexLogo'
-import { createClient } from '@/lib/supabase/client'
+import { login } from '@/lib/actions/auth'
 
 export default function PaginaLogin() {
-  const router = useRouter()
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]       = useState('')
@@ -17,18 +15,10 @@ export default function PaginaLogin() {
     e.preventDefault()
     setError('')
     setCargando(true)
-
-    const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
-
+    const formData = new FormData(e.target)
+    const result = await login(formData)
     setCargando(false)
-
-    if (authError) {
-      setError('Email o contraseña incorrectos.')
-      return
-    }
-
-    router.push('/')
+    if (result?.error) setError(result.error)
   }
 
   return (
@@ -43,7 +33,7 @@ export default function PaginaLogin() {
         <div className="absolute inset-0 bg-linear-to-r from-zinc-950/60 to-zinc-950/10" />
         <div className="absolute bottom-12 left-10 right-10">
           <p className="text-white/80 text-xl font-light italic leading-relaxed">
-            "La noche que siempre<br />quisiste vivir."
+            La noche que siempre<br />quisiste vivir.
           </p>
         </div>
       </div>
@@ -77,6 +67,7 @@ export default function PaginaLogin() {
               <label className="text-zinc-500 text-xs block mb-1.5">Email</label>
               <input
                 type="email"
+                name="email"
                 placeholder="tu@email.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -88,6 +79,7 @@ export default function PaginaLogin() {
               <label className="text-zinc-500 text-xs block mb-1.5">Contraseña</label>
               <input
                 type="password"
+                name="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
