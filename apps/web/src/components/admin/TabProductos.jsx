@@ -84,8 +84,9 @@ export default function TabProductos({ productos }) {
 
       {error && !modal && <p className="text-red-400 text-xs mb-3">{error}</p>}
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden overflow-x-auto">
-        <table className="w-full text-sm min-w-125">
+      {/* Tabla — desktop */}
+      <div className="hidden sm:block bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+        <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-500 text-xs uppercase">
               <th className="text-left px-4 py-3">Nombre</th>
@@ -108,18 +109,36 @@ export default function TabProductos({ productos }) {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-3">
-                    <button onClick={() => abrirEditar(p)} className="text-zinc-500 hover:text-blue-400 transition-colors">
-                      <Edit2 size={14} />
-                    </button>
-                    <button onClick={() => handleBorrar(p.id)} disabled={isPending} className="text-zinc-500 hover:text-red-400 transition-colors disabled:opacity-40">
-                      <Trash2 size={14} />
-                    </button>
+                    <button onClick={() => abrirEditar(p)} className="text-zinc-500 hover:text-blue-400 transition-colors"><Edit2 size={14} /></button>
+                    <button onClick={() => handleBorrar(p.id)} disabled={isPending} className="text-zinc-500 hover:text-red-400 transition-colors disabled:opacity-40"><Trash2 size={14} /></button>
                   </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Cards — móvil */}
+      <div className="sm:hidden space-y-3">
+        {productos.map((p) => (
+          <div key={p.id} className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-zinc-100 font-medium text-sm truncate">{p.nombre}</p>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <span className="text-zinc-500 text-xs capitalize">{p.categoria}</span>
+                <span className="text-gold-400 text-xs font-semibold">{p.precio.toFixed(2)} €</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${p.disponible ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-700 text-zinc-500'}`}>
+                  {p.disponible ? 'Disponible' : 'Agotado'}
+                </span>
+              </div>
+            </div>
+            <div className="flex gap-3 shrink-0">
+              <button onClick={() => abrirEditar(p)} className="text-zinc-500 hover:text-blue-400 transition-colors"><Edit2 size={14} /></button>
+              <button onClick={() => handleBorrar(p.id)} disabled={isPending} className="text-zinc-500 hover:text-red-400 transition-colors disabled:opacity-40"><Trash2 size={14} /></button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {modal && (

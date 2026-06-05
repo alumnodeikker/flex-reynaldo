@@ -4,11 +4,13 @@ import CartaClient from '@/components/carta/CartaClient'
 export default async function PaginaPedir() {
   const supabase = await createClient()
 
-  const { data: productos, error } = await supabase
-    .from('productos')
-    .select('id, nombre, descripcion, precio, categoria, imagen_url')
-    .eq('disponible', true)
-    .order('categoria')
+  const [
+    { data: productos, error },
+    { data: mesas },
+  ] = await Promise.all([
+    supabase.from('productos').select('id, nombre, descripcion, precio, categoria, imagen_url').eq('disponible', true).order('categoria'),
+    supabase.from('mesas').select('id, numero, piso, capacidad').order('piso').order('numero'),
+  ])
 
   if (error) {
     return (
@@ -18,5 +20,5 @@ export default async function PaginaPedir() {
     )
   }
 
-  return <CartaClient productos={productos} />
+  return <CartaClient productos={productos} mesas={mesas ?? []} />
 }

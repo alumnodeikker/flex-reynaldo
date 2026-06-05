@@ -66,10 +66,20 @@ export async function editarProducto(id, formData) {
 export async function borrarProducto(id) {
   const supabase = await createClient()
 
-  const { error } = await supabase.from('productos').delete().eq('id', id)
-  
+  const { data: producto } = await supabase
+    .from('productos')
+    .select('imagen_url')
+    .eq('id', id)
+    .single()
 
+  const { error } = await supabase.from('productos').delete().eq('id', id)
   if (error) throw new Error(error.message)
+
+  if (producto?.imagen_url) {
+    const nombre = producto.imagen_url.split('/').pop()
+    await supabase.storage.from('productos').remove([nombre])
+  }
+
   revalidatePath('/admin')
   revalidatePath('/')
 }

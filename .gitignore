@@ -4,7 +4,6 @@
 
 # dotenvx
 .env.keys
-.env.local
 
 apps/web/node_modules
 apps/web/.env.local

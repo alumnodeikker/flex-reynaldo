@@ -82,11 +82,11 @@ create policy "cliente: ver sus pedidos"
     and public.mi_rol() = 'cliente'
   );
 
-create policy "cliente: crear pedidos"
+create policy "autenticado: crear pedidos"
   on public.pedidos for insert
   with check (
     cliente_id = auth.uid()
-    and public.mi_rol() = 'cliente'
+    and auth.role() = 'authenticated'
   );
 
 create policy "staff: ver todos los pedidos"
@@ -145,11 +145,11 @@ create policy "cliente: ver sus reservas"
   on public.reservas for select
   using ( cliente_id = auth.uid() );
 
-create policy "cliente: crear reserva"
+create policy "autenticado: crear reserva"
   on public.reservas for insert
   with check (
     cliente_id = auth.uid()
-    and public.mi_rol() = 'cliente'
+    and auth.role() = 'authenticated'
   );
 
 -- Solo puede cambiar el estado de 'pendiente' → 'cancelada'
@@ -204,4 +204,25 @@ create policy "admin: borrar imágenes productos"
   using (
     bucket_id = 'productos'
     and public.mi_rol() = 'admin'
+  );
+
+-- ── storage: bucket avatares ──────────────────────────────────────────────────
+
+create policy "público: ver avatares"
+  on storage.objects for select
+  using ( bucket_id = 'avatares' );
+
+create policy "usuario: subir su avatar"
+  on storage.objects for insert
+  with check (
+    bucket_id = 'avatares'
+    and auth.role() = 'authenticated'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "usuario: actualizar su avatar"
+  on storage.objects for update
+  using (
+    bucket_id = 'avatares'
+    and (storage.foldername(name))[1] = auth.uid()::text
   );

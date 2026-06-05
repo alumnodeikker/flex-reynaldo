@@ -6,6 +6,7 @@ create table public.perfiles (
   rol        text not null default 'cliente'
              check (rol in ('cliente', 'staff', 'admin', 'portero')),
   avatar_url text,
+  activo boolean not null default true,
   creado_en  timestamptz not null default now()
 );
 
@@ -17,7 +18,7 @@ create or replace function public.handle_new_user()
   as $$
   begin
   insert into public.perfiles (id, nombre)
-  values (new.id, new.raw_user_meta_data->>'full_name');
+  values (new.id, new.raw_user_meta_data->>'nombre');
   return new;
 end;
 $$;
@@ -110,3 +111,29 @@ insert into public.salas_vip (nombre, descripcion, capacidad, precio_hora) value
 
 ALTER TABLE public.perfiles     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salas_vip     ENABLE ROW LEVEL SECURITY;
+
+-- Función RPC para que el admin borre un usuario de auth.users.
+-- SECURITY DEFINER: se ejecuta con privilegios elevados (puede acceder a auth.users).
+-- La autorización se verifica dentro de la función vía mi_rol().
+
+create or replace function public.borrar_usuario(user_id uuid)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  if public.mi_rol() != 'admin' then
+    raise exception 'No autorizado';
+  end if;
+
+  delete from auth.users where id = user_id;
+end;
+$$;
+
+-- ── Storage buckets ───────────────────────────────────────────────────────────
+
+insert into storage.buckets (id, name, public)
+values
+  ('productos', 'productos', true),
+  ('avatares',  'avatares',  true)
+on conflict (id) do nothing;

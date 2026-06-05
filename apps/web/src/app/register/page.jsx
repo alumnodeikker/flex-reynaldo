@@ -36,7 +36,7 @@ export default function PaginaRegister() {
       {/* Panel izquierdo — foto */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=1200&auto=format&fit=crop&q=80"
+          src="https://images.unsplash.com/photo-1652517816501-a884c3ad929e?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           alt="Flex Club"
           className="absolute inset-0 w-full h-full object-cover"
         />

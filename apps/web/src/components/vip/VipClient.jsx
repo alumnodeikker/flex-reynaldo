@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { Crown, Users, Clock, CheckCircle } from 'lucide-react'
+import { crearReserva } from '@/lib/actions/reservas'
 
 const ESTILOS_SALA = {
   'Sala Roja': {
@@ -40,6 +41,8 @@ export default function VipClient({ salas }) {
   const [hora, setHora]         = useState('')
   const [duracion, setDuracion] = useState('')
   const [reservado, setReservado] = useState(false)
+  const [error, setError]         = useState(null)
+  const [isPending, startTransition] = useTransition()
 
   const sala   = salas.find((s) => s.id === salaSeleccionada)
   const horas  = duracion ? parseInt(duracion) : 0
@@ -48,7 +51,15 @@ export default function VipClient({ salas }) {
 
   function reservar() {
     if (!puedeReservar) return
-    setReservado(true)
+    setError(null)
+    startTransition(async () => {
+      try {
+        await crearReserva({ sala_id: salaSeleccionada, fecha, hora, duracionHoras: horas })
+        setReservado(true)
+      } catch (err) {
+        setError(err.message)
+      }
+    })
   }
 
   if (reservado) {
@@ -159,12 +170,14 @@ export default function VipClient({ salas }) {
             </div>
           )}
 
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+
           <button
             onClick={reservar}
-            disabled={!puedeReservar}
+            disabled={!puedeReservar || isPending}
             className="w-full py-2.5 bg-gold-500 hover:bg-gold-600 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-950 font-bold rounded-xl transition-colors"
           >
-            Confirmar reserva
+            {isPending ? 'Reservando…' : 'Confirmar reserva'}
           </button>
         </div>
       </div>

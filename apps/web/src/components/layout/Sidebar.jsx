@@ -43,7 +43,7 @@ function NavGroup({ title, items, pathname }) {
 
 const LABEL_ROL = { cliente: 'Cliente', staff: 'Staff', portero: 'Portero', admin: 'Admin' }
 
-export default function Sidebar({ rol, nombre }) {
+export default function Sidebar({ rol, nombre, avatarUrl }) {
   const pathname = usePathname()
   const itemsGestion = NAV_STAFF.filter(i => i.roles.includes(rol))
 
@@ -64,8 +64,11 @@ export default function Sidebar({ rol, nombre }) {
         href="/perfil"
         className="px-4 py-4 border-t border-zinc-800 flex items-center gap-3 hover:bg-zinc-800/50 transition-colors w-full text-left group"
       >
-        <div className="w-8 h-8 rounded-full bg-gold-500/30 flex items-center justify-center text-gold-400 text-sm font-bold shrink-0">
-          {nombre?.[0]?.toUpperCase() ?? '?'}
+        <div className="w-8 h-8 rounded-full bg-gold-500/30 border border-gold-500/40 overflow-hidden flex items-center justify-center text-gold-400 text-sm font-bold shrink-0">
+          {avatarUrl
+            ? <img src={avatarUrl} alt={nombre} className="w-full h-full object-cover" />
+            : nombre?.[0]?.toUpperCase() ?? '?'
+          }
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-zinc-100 truncate">{nombre}</p>

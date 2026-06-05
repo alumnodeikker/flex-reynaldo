@@ -17,16 +17,14 @@ insert into public.productos (nombre, descripcion, precio, categoria, disponible
   -- ('Pack Noche VIP',       'Botella premium + 4 refrescos + alitas',60.00, 'pack',  true);
 
 
-update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/agua-mineral.jpg'      where nombre = 'Agua mineral 50cl';
-update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/refresco-cola.jpg'     where nombre = 'Refresco cola';
-update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/cerveza-artesana.jpg'  where nombre = 'Cerveza artesana';
-update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/gintonic-premium.jpg'  where nombre = 'Gin-tonic premium';
-update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/mojito.jpg'            where nombre = 'Mojito';
-update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/zumo-naranja.jpg'      where nombre = 'Zumo de naranja';
-update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/nachos-guacamole.jpg'  where nombre = 'Nachos con guacamole';
-update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/patatas-bravas.jpg'    where nombre = 'Patatas bravas';
-update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/tabla-quesos.jpg'      where nombre = 'Tabla de quesos';
-update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/alitas-bbq.jpg'        where nombre = 'Alitas BBQ';
-update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/burger-flex.jpg'       where nombre = 'Burger Flex';
-
-http://127.0.0.1:54321/storage/v1/object/public/productos/agua-mineral.jpg
+-- update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/agua-mineral.jpg'      where nombre = 'Agua mineral 50cl';
+-- update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/refresco-cola.jpg'     where nombre = 'Refresco cola';
+-- update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/cerveza-artesana.jpg'  where nombre = 'Cerveza artesana';
+-- update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/gintonic-premium.jpg'  where nombre = 'Gin-tonic premium';
+-- update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/mojito.jpg'            where nombre = 'Mojito';
+-- update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/zumo-naranja.jpg'      where nombre = 'Zumo de naranja';
+-- update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/nachos-guacamole.jpg'  where nombre = 'Nachos con guacamole';
+-- update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/patatas-bravas.jpg'    where nombre = 'Patatas bravas';
+-- update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/tabla-quesos.jpg'      where nombre = 'Tabla de quesos';
+-- update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/alitas-bbq.jpg'        where nombre = 'Alitas BBQ';
+-- update public.productos set imagen_url = 'http://localhost:54321/storage/v1/object/public/productos/burger-flex.jpg'       where nombre = 'Burger Flex';

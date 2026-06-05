@@ -6,7 +6,7 @@ import BottomNav from './BottomNav'
 
 const AUTH_ROUTES = ['/login', '/register']
 
-export default function Shell({ children, rol, nombre }) {
+export default function Shell({ children, rol, nombre, avatarUrl }) {
   const pathname = usePathname()
 
   // Si estamos en la página de login o register, no necesitamos Menú de navegación
@@ -16,7 +16,7 @@ export default function Shell({ children, rol, nombre }) {
   return (
     <div className="flex h-screen overflow-hidden">
       <div className="hidden lg:block">
-        <Sidebar rol={rol} nombre={nombre} />
+        <Sidebar rol={rol} nombre={nombre} avatarUrl={avatarUrl} />
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">

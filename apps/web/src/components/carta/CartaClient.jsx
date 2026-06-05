@@ -6,7 +6,7 @@ import CarritoDrawer from './CarritoDrawer'
 
 const CATEGORIAS = ['Todo', 'Bebida', 'Comida', 'Pack']
 
-export default function CartaClient({ productos }) {
+export default function CartaClient({ productos, mesas }) {
   const [cat, setCat] = useState('Todo')
 
   const productosFiltrados =
@@ -46,7 +46,7 @@ export default function CartaClient({ productos }) {
         </div>
       </div>
 
-      <CarritoDrawer />
+      <CarritoDrawer mesas={mesas} />
     </div>
   )
 }

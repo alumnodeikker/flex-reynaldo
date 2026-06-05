@@ -1,48 +1,47 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import PedidoCard from './PedidoCard'
+import { avanzarPedido } from '@/lib/actions/pedidos'
 
-const PEDIDOS_INIT = [
-  {
-    id: 1, mesa: 'Mesa 3', cliente: 'María López', hora: '23:14', estado: 'pendiente',
-    items: [{ nombre: 'Gin Tonic Premium', cantidad: 2 }, { nombre: 'Nachos', cantidad: 1 }, { nombre: 'Patatas bravas', cantidad: 2 }],
-  },
-  {
-    id: 2, mesa: 'Mesa 7', cliente: 'Alex García', hora: '23:21', estado: 'pendiente',
-    items: [{ nombre: 'Cerveza Artesana', cantidad: 3 }, { nombre: 'Patatas bravas', cantidad: 2 }],
-  },
-  {
-    id: 3, mesa: 'Sala Roja', cliente: 'Carlos Ruiz', hora: '23:05', estado: 'completado',
-    items: [{ nombre: 'Vino tinto', cantidad: 1 }, { nombre: 'Tabla de quesos', cantidad: 1 }],
-  },
-  {
-    id: 4, mesa: 'Mesa 1', cliente: 'Laura Sanz', hora: '23:30', estado: 'preparando',
-    items: [{ nombre: 'Mojito', cantidad: 4 }],
-  },
-  {
-    id: 5, mesa: 'Mesa 12', cliente: 'Pedro Gil', hora: '22:58', estado: 'completado',
-    items: [{ nombre: 'Hamburguesa Flex', cantidad: 2 }, { nombre: 'Coca-Cola', cantidad: 2 }],
-  },
-]
+const FILTROS = ['todos', 'pendiente', 'en_barra', 'listo', 'entregado']
 
-const SIGUIENTE = { pendiente: 'preparando', preparando: 'completado' }
-const FILTROS   = ['todos', 'pendiente', 'preparando', 'completado']
+const LABEL_FILTRO = {
+  todos:    'Todos',
+  pendiente: 'Pendiente',
+  en_barra:  'Preparando',
+  listo:     'Listo',
+  entregado: 'Entregado',
+}
 
-export default function StaffClient() {
-  const [pedidos, setPedidos] = useState(PEDIDOS_INIT)
-  const [filtro, setFiltro]   = useState('todos')
+export default function StaffClient({ pedidosIniciales }) {
+  const [pedidos, setPedidos]     = useState(pedidosIniciales)
+  const [filtro, setFiltro]       = useState('todos')
+  const [isPending, startTransition] = useTransition()
 
-  function avanzar(id) {
-    setPedidos(prev => prev.map(p =>
-      p.id === id && SIGUIENTE[p.estado] ? { ...p, estado: SIGUIENTE[p.estado] } : p
-    ))
+  function avanzar(id, estadoActual) {
+    const SIGUIENTE = { pendiente: 'en_barra', en_barra: 'listo', listo: 'entregado' }
+    const siguiente = SIGUIENTE[estadoActual]
+    if (!siguiente) return
+
+    // Optimistic update
+    setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: siguiente } : p))
+
+    startTransition(async () => {
+      try {
+        await avanzarPedido(id, estadoActual)
+      } catch {
+        // Revert on error
+        setPedidos(prev => prev.map(p => p.id === id ? { ...p, estado: estadoActual } : p))
+      }
+    })
   }
 
   const pedidosFiltrados = filtro === 'todos' ? pedidos : pedidos.filter(p => p.estado === filtro)
   const pendientes  = pedidos.filter(p => p.estado === 'pendiente').length
-  const preparando  = pedidos.filter(p => p.estado === 'preparando').length
-  const completados = pedidos.filter(p => p.estado === 'completado').length
+  const preparando  = pedidos.filter(p => p.estado === 'en_barra').length
+  const listos      = pedidos.filter(p => p.estado === 'listo').length
+  const completados = pedidos.filter(p => p.estado === 'entregado').length
 
   return (
     <div className="p-4 sm:p-8">
@@ -70,7 +69,7 @@ export default function StaffClient() {
         </div>
         <div className="bg-zinc-900 border border-blue-500/20 rounded-xl p-4">
           <p className="text-zinc-500 text-xs">Preparando</p>
-          <p className="text-2xl font-bold text-blue-400 mt-1">{preparando}</p>
+          <p className="text-2xl font-bold text-blue-400 mt-1">{preparando + listos}</p>
         </div>
         <div className="bg-zinc-900 border border-emerald-500/20 rounded-xl p-4">
           <p className="text-zinc-500 text-xs">Completados</p>
@@ -84,11 +83,11 @@ export default function StaffClient() {
           <button
             key={f}
             onClick={() => setFiltro(f)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               filtro === f ? 'bg-gold-500 text-zinc-950' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
             }`}
           >
-            {f}
+            {LABEL_FILTRO[f]}
           </button>
         ))}
       </div>
@@ -98,6 +97,9 @@ export default function StaffClient() {
         {pedidosFiltrados.map(pedido => (
           <PedidoCard key={pedido.id} pedido={pedido} onAvanzar={avanzar} />
         ))}
+        {pedidosFiltrados.length === 0 && (
+          <p className="text-zinc-500 text-sm">No hay pedidos.</p>
+        )}
       </div>
     </div>
   )

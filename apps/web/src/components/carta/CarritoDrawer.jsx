@@ -5,8 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useCarritoStore } from '@/store/carritoStore'
 import { ShoppingCart, X } from 'lucide-react'
 
-export default function CarritoDrawer() {
-  const { items, mesaNumero, setMesaNumero, eliminarItem, vaciarCarrito } = useCarritoStore()
+export default function CarritoDrawer({ mesas = [] }) {
+  const { items, eliminarItem, vaciarCarrito } = useCarritoStore()
 
   const totalItems = useCarritoStore((s) => s.items.reduce((acc, i) => acc + i.cantidad, 0))
   const total      = useCarritoStore((s) => s.items.reduce((acc, i) => acc + i.precio * i.cantidad, 0))
@@ -14,35 +14,26 @@ export default function CarritoDrawer() {
   const [carritoAbierto, setCarritoAbierto] = useState(false)
   const [pedidoEnviado, setPedidoEnviado]   = useState(false)
   const [modalMesa, setModalMesa]           = useState(false)
+  const [mesaSel, setMesaSel]               = useState(null)
   const [enviando, setEnviando]             = useState(false)
   const [error, setError]                   = useState(null)
 
-  async function handleConfirmarPedido(e) {
-    e.preventDefault()
-    if (!mesaNumero || items.length === 0) return
+  const pisos = [...new Set(mesas.map((m) => m.piso))].sort()
+
+  async function handleConfirmarPedido() {
+    if (!mesaSel || items.length === 0) return
 
     setEnviando(true)
     setError(null)
 
     const supabase = createClient()
-
-    const { data: mesaData, error: mesaError } = await supabase
-      .from('mesas')
-      .select('id')
-      .eq('numero', mesaNumero)
-      .single()
-
-    if (mesaError || !mesaData) {
-      setError('Mesa no encontrada. Comprueba el número e inténtalo de nuevo.')
-      setEnviando(false)
-      return
-    }
+    const { data: { user } } = await supabase.auth.getUser()
 
     const totalPedido = items.reduce((sum, i) => sum + i.precio * i.cantidad, 0)
 
     const { data: pedido, error: pedidoError } = await supabase
       .from('pedidos')
-      .insert({ mesa_id: mesaData.id, estado: 'pendiente', total: totalPedido })
+      .insert({ mesa_id: mesaSel.id, cliente_id: user?.id ?? null, estado: 'pendiente', total: totalPedido })
       .select('id')
       .single()
 
@@ -72,6 +63,7 @@ export default function CarritoDrawer() {
     setModalMesa(false)
     setPedidoEnviado(true)
     vaciarCarrito()
+    setMesaSel(null)
     setEnviando(false)
 
     setTimeout(() => {
@@ -173,43 +165,60 @@ export default function CarritoDrawer() {
         )}
       </div>
 
-      {/* Modal número de mesa */}
+      {/* Modal selector de mesa */}
       {modalMesa && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/70" onClick={() => setModalMesa(false)} />
-          <form
-            onSubmit={handleConfirmarPedido}
-            className="relative bg-zinc-900 border border-zinc-700 rounded-2xl p-8 w-full max-w-sm mx-4 shadow-2xl"
-          >
-            <h2 className="text-lg font-bold text-zinc-100 mb-1">¿En qué mesa estás?</h2>
-            <p className="text-zinc-500 text-sm mb-6">Introduce el número que aparece en tu mesa.</p>
-            <input
-              type="number"
-              min="1"
-              placeholder="Ej. 7"
-              value={mesaNumero ?? ''}
-              onChange={(e) => setMesaNumero(Number(e.target.value))}
-              autoFocus
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-2xl text-center font-bold text-zinc-100 outline-none focus:border-gold-500 transition-colors mb-6"
-            />
-            {error && <p className="text-red-400 text-xs mb-4">{error}</p>}
-            <div className="flex gap-3">
+          <div className="relative bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-lg font-bold text-zinc-100">¿En qué mesa estás?</h2>
+              <button onClick={() => setModalMesa(false)} className="text-zinc-500 hover:text-zinc-100">
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-zinc-500 text-sm mb-5">Toca tu mesa para seleccionarla.</p>
+
+            <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
+              {pisos.map((piso) => (
+                <div key={piso}>
+                  <p className="text-zinc-500 text-xs uppercase tracking-wider mb-2">Piso {piso}</p>
+                  <div className="grid grid-cols-5 gap-2">
+                    {mesas.filter((m) => m.piso === piso).map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => setMesaSel(m)}
+                        className={`aspect-square rounded-xl text-sm font-bold transition-colors border ${
+                          mesaSel?.id === m.id
+                            ? 'bg-gold-500 text-zinc-950 border-gold-500'
+                            : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-gold-500 hover:text-gold-400'
+                        }`}
+                      >
+                        {m.numero}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {error && <p className="text-red-400 text-xs mt-4">{error}</p>}
+
+            <div className="flex gap-3 mt-5">
               <button
-                type="button"
                 onClick={() => setModalMesa(false)}
                 className="flex-1 py-2.5 border border-zinc-700 text-zinc-400 hover:bg-zinc-800 rounded-xl text-sm transition-colors"
               >
                 Cancelar
               </button>
               <button
-                type="submit"
-                disabled={!mesaNumero || enviando}
+                onClick={handleConfirmarPedido}
+                disabled={!mesaSel || enviando}
                 className="flex-1 py-2.5 bg-gold-500 hover:bg-gold-600 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-950 font-bold rounded-xl text-sm transition-colors"
               >
-                {enviando ? 'Enviando…' : 'Confirmar pedido'}
+                {enviando ? 'Enviando…' : mesaSel ? `Mesa ${mesaSel.numero}` : 'Confirmar'}
               </button>
             </div>
-          </form>
+          </div>
         </div>
       )}
     </>
