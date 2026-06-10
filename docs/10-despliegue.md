@@ -231,9 +231,10 @@ Con la app en Vercel ya tienes HTTPS real. Abre la URL desde tu móvil, inicia s
 Para probar el escáner de QR del portero:
 
 1. Abre `/porteros` en el móvil
-2. Pulsa **Cámara** y acepta el permiso
-3. Apunta al QR de una entrada válida
-4. Debería aparecer "ENTRADA VÁLIDA" en verde
+2. Pulsa **Cámara** y acepta el permiso — la cámara trasera arranca directamente
+3. Apunta al QR de una entrada válida — debería aparecer "ENTRADA VÁLIDA" en verde
+4. Escanea el mismo QR otra vez — debería aparecer "Entrada ya utilizada"
+5. Al recargar la página, el historial de entradas del día se carga desde la base de datos
 
 ---
 
@@ -253,6 +254,16 @@ git commit -m "descripción del cambio"
 git push origin main
 # Vercel detecta el push y despliega automáticamente en ~1 minuto
 ```
+
+### Migraciones pendientes
+
+Si el cambio incluye nuevas migraciones en `supabase/migrations/`, aplícalas antes de desplegar el código:
+
+```bash
+npx supabase db push
+```
+
+Si no lo haces, el código en producción intentará leer o escribir columnas que aún no existen en la base de datos y fallará.
 
 ---
 
