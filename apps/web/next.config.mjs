@@ -39,10 +39,13 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'ejcckbwnyfrrxdrfmlhn.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'wooehuxylcneualnwibe.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
     ],
   },
 }
 
 export default withPWA(nextConfig)
-
-
